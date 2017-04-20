@@ -1,0 +1,29 @@
+{
+  "name": "weex-service",
+  "version": "0.0.1",
+  "description": "Fast create weex service for multiple pages application.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Spikef/weex-service.git"
+  },
+  "keywords": [
+    "weex",
+    "service",
+    "router"
+  ],
+  "author": "Spikef",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Spikef/weex-service/issues"
+  },
+  "homepage": "https://github.com/Spikef/weex-service#readme",
+  "dependencies": {
+    "path-to-regexp": "^1.7.0",
+    "qs": "^6.4.0"
+  },
+  "devDependencies": {
+    "webpack": "^2.3.3"
+  }
+}

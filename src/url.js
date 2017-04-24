@@ -1,4 +1,4 @@
-module.exports = function (url) {
+module.exports = function(url) {
     var req = {
         protocol: '',
         host: '',

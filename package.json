@@ -1,6 +1,6 @@
 {
   "name": "weex-service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Fast create weex service for multiple pages application.",
   "main": "index.js",
   "scripts": {},

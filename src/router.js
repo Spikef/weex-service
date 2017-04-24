@@ -2,6 +2,9 @@ var qs = require('qs');
 var ps = require('./path');
 var Url = require('./url');
 var utils = require('./utils');
+var appName = WXEnvironment.platform !== 'Web' ? '.weex.js' : '';
+
+var navigator = weex.requireModule('navigator');
 
 function Router(options) {
     var url = options.url;
@@ -12,11 +15,15 @@ function Router(options) {
 
     url = url.replace(/\\/g, '/');
 
-    var match;
+    var match, that = this;
 
     var data = splitUrl(url);
     if (options.routes) {
         this.routes = options.routes;
+        this._routes = {};
+        this.routes.forEach(function(route) {
+            that._routes[route.name] = route;
+        });
         if (data.hash) {
             var hash = data.hash.replace('#', '');
             if (hash) match = this.match(hash);
@@ -26,7 +33,7 @@ function Router(options) {
     this.route = this.parse({ url: url, data: data }, match);
 }
 
-Router.prototype.match = function (hash) {
+Router.prototype.match = function(hash) {
     if (!this.routes || !this.routes.length) {
         throw new Error('No routes!');
     }
@@ -39,8 +46,7 @@ Router.prototype.match = function (hash) {
     }
 };
 
-Router.prototype.push = function (route) {
-    var navigator = weex.requireModule('navigator');
+Router.prototype.push = function(route) {
     var url = this.stringify(route);
 
     navigator.push({
@@ -49,25 +55,50 @@ Router.prototype.push = function (route) {
     }, function() {});
 };
 
-Router.prototype.back = function () {
-    var navigator = weex.requireModule('navigator');
+Router.prototype.back = function() {
     navigator.pop();
 };
 
-// path || (params, query, name)
-Router.prototype.stringify = function (route) {
+// name || {name || path, params, query}
+Router.prototype.stringify = function(route) {
     var url;
+    var rType = utils.getType(route);
 
-    var path = route.path || route.hash || '';
-    var match = route.match || this.route.match;
-    if (!path && match && route.params) {
+    if (rType === 'string') {
+        if (/:\/\//.test(route)) {
+            url = route + appName;
+        } else {
+            url = this.route.baseUrl + '/' + route + appName;
+        }
+    } else if (rType === 'object') {
+        if (route.params && !this.routes) {
+            throw new Error('You might have forgotten to define routes!');
+        }
+        
+        url = this.route.baseUrl + '/' + route.name + appName;
 
+        if (route.query) {
+            var search = qs.stringify(route.query);
+            if (search) {
+                url += '?' + search;
+            }
+        }
+        
+        if (this._routes && this._routes[route.name]) {
+            var path = this._routes[route.name].path;
+            var hash = ps.stringify(route.params, path);
+            if (hash) {
+                url += '#' + hash;
+            }
+        }
+    } else {
+        throw new Error('Error parameter type of route!');
     }
 
     return url;
 };
 
-Router.prototype.parse = function (url, match) {
+Router.prototype.parse = function(url, match) {
     var data;
     if (typeof url === 'object') {
         data = url.data;
@@ -99,7 +130,8 @@ Router.prototype.parse = function (url, match) {
     if (route.baseUrl) {
         var req = Url(route.baseUrl);
 
-        route.baseUrl = req.origin + req.pathname;
+        route.baseUrl = req.origin;
+        if (req.pathname !== '/') route.baseUrl += req.pathname;
 
         route.protocol = req.protocol;
         route.host = req.host;
@@ -133,7 +165,7 @@ function splitUrl(url) {
     var search = '';
     var hash = '';
     var parts = url.split(/(?=[?#])/);
-    parts.forEach(function (p) {
+    parts.forEach(function(p) {
         if (/^\?/.test(p)) {
             search += '&' + utils.removeQuestion(utils.removeSlash(p));
         } else if (/#/.test(p)) {

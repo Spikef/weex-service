@@ -1,6 +1,6 @@
 var path = require('path-to-regexp');
 
-exports.match = function (input, match) {
+exports.match = function(input, match) {
     if (!input || !match) return false;
 
     var keys = [];
@@ -9,7 +9,7 @@ exports.match = function (input, match) {
     return arr && arr.length;
 };
 
-exports.parse = function (input, match) {
+exports.parse = function(input, match) {
     var params = {};
     if (!input || !match) return params;
 
@@ -30,6 +30,8 @@ exports.parse = function (input, match) {
     return params;
 };
 
-exports.stringify = function (params, match) {
+exports.stringify = function(params, match) {
+    var compiler = path.compile(match)
 
+    return compiler(params);
 };
